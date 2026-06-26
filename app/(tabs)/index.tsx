@@ -1,98 +1,207 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { Colors, Radius, Shadow, Spacing, Typography } from '@/constants';
+import { scanImage, ScanResult, TargetLanguage } from '@/services/groq';
+import { Ionicons } from '@expo/vector-icons';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function ScannerScreen() {
+  const scheme = useColorScheme();
+  const colors = scheme === 'dark' ? Colors.dark : Colors.light;
 
-export default function HomeScreen() {
+  const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef<CameraView>(null);
+
+  const [lang, setLang] = useState<TargetLanguage>('ru');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<ScanResult | null>(null);
+
+  const handleScan = async () => {
+    if (!cameraRef.current) return;
+    try {
+      setLoading(true);
+      setResult(null);
+
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
+      if (!photo) throw new Error('Failed to capture photo');
+
+      const manipulated = await ImageManipulator.manipulateAsync(
+        photo.uri,
+        [{ resize: { width: 1024 } }],
+        { compress: 0.7, base64: true, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      if (!manipulated.base64) throw new Error('Failed to process image');
+
+      const scanResult = await scanImage(manipulated.base64, lang);
+      setResult(scanResult);
+    } catch (err) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!permission) {
+    return (
+      <SafeAreaView style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator color={colors.primary} size="large" />
+      </SafeAreaView>
+    );
+  }
+
+  if (!permission.granted) {
+    return (
+      <SafeAreaView style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
+        <Ionicons name="camera-outline" size={64} color={colors.textMuted} />
+        <Text style={[styles.permTitle, { color: colors.text }]}>Camera access needed</Text>
+        <Text style={[styles.permText, { color: colors.textSecondary }]}>
+          We use the camera to scan and translate Chinese text
+        </Text>
+        <TouchableOpacity
+          style={[styles.permButton, { backgroundColor: colors.primary }, Shadow.md]}
+          onPress={requestPermission}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.permButtonText}>Allow camera</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <View style={styles.header}>
+        <View>
+          <Text style={[styles.title, { color: colors.text }]}>Scanner</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Point camera at any Chinese text
+          </Text>
+        </View>
+        <View style={[styles.langToggle, { backgroundColor: colors.surface }]}>
+          <TouchableOpacity
+            style={[styles.langOption, lang === 'ru' && { backgroundColor: colors.primary }]}
+            onPress={() => setLang('ru')}
+          >
+            <Text style={[styles.langText, { color: lang === 'ru' ? '#fff' : colors.textSecondary }]}>RU</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.langOption, lang === 'en' && { backgroundColor: colors.primary }]}
+            onPress={() => setLang('en')}
+          >
+            <Text style={[styles.langText, { color: lang === 'en' ? '#fff' : colors.textSecondary }]}>EN</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      <View style={styles.cameraContainer}>
+        <CameraView ref={cameraRef} style={styles.camera} facing="back">
+          <View style={styles.overlay}>
+            <View style={[styles.corner, styles.topLeft]} />
+            <View style={[styles.corner, styles.topRight]} />
+            <View style={[styles.corner, styles.bottomLeft]} />
+            <View style={[styles.corner, styles.bottomRight]} />
+          </View>
+        </CameraView>
+      </View>
+
+      {result && (
+        <ScrollView style={styles.resultCard} contentContainerStyle={{ padding: Spacing.lg }}>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.original, { color: colors.text }]}>{result.original}</Text>
+            <Text style={[styles.pinyin, { color: colors.textMuted }]}>{result.pinyin}</Text>
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            <Text style={[styles.translation, { color: colors.text }]}>{result.translation}</Text>
+            <View style={[styles.contextBox, { backgroundColor: colors.background }]}>
+              <Ionicons name="bulb-outline" size={16} color={colors.accent} />
+              <Text style={[styles.context, { color: colors.textSecondary }]}>{result.context}</Text>
+            </View>
+          </View>
+        </ScrollView>
+      )}
+
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.scanButton, { backgroundColor: colors.primary }, Shadow.lg]}
+          activeOpacity={0.85}
+          onPress={handleScan}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Ionicons name="camera" size={28} color="#fff" />
+              <Text style={styles.scanButtonText}>Scan Text</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: { flex: 1 },
+  center: { alignItems: 'center', justifyContent: 'center', gap: Spacing.md, padding: Spacing.xl },
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.screen,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  title: { fontSize: Typography.sizes.xxxl, fontWeight: Typography.weights.bold, letterSpacing: -0.5 },
+  subtitle: { fontSize: Typography.sizes.md, marginTop: Spacing.xs },
+  langToggle: { flexDirection: 'row', borderRadius: Radius.full, padding: 3 },
+  langOption: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radius.full },
+  langText: { fontSize: Typography.sizes.sm, fontWeight: Typography.weights.semibold },
+  cameraContainer: {
+    flex: 1,
+    marginHorizontal: Spacing.screen,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  camera: { flex: 1 },
+  overlay: { flex: 1, margin: 40 },
+  corner: { position: 'absolute', width: 32, height: 32, borderColor: '#fff', borderWidth: 3 },
+  topLeft: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 8 },
+  topRight: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0, borderTopRightRadius: 8 },
+  bottomLeft: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 8 },
+  bottomRight: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 8 },
+  resultCard: { maxHeight: 280 },
+  card: { borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.sm },
+  original: { fontSize: Typography.sizes.xxl, fontWeight: Typography.weights.semibold },
+  pinyin: { fontSize: Typography.sizes.md, fontStyle: 'italic' },
+  divider: { height: 1, marginVertical: Spacing.sm },
+  translation: { fontSize: Typography.sizes.lg, fontWeight: Typography.weights.medium },
+  contextBox: { flexDirection: 'row', gap: Spacing.sm, padding: Spacing.md, borderRadius: Radius.md, marginTop: Spacing.sm },
+  context: { flex: 1, fontSize: Typography.sizes.sm, lineHeight: 20 },
+  actions: { paddingHorizontal: Spacing.screen, paddingVertical: Spacing.lg },
+  scanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.lg,
+    borderRadius: Radius.full,
+    minHeight: 60,
   },
+  scanButtonText: { color: '#fff', fontSize: Typography.sizes.lg, fontWeight: Typography.weights.semibold },
+  permTitle: { fontSize: Typography.sizes.xl, fontWeight: Typography.weights.bold },
+  permText: { fontSize: Typography.sizes.md, textAlign: 'center' },
+  permButton: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderRadius: Radius.full, marginTop: Spacing.md },
+  permButtonText: { color: '#fff', fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
 });
