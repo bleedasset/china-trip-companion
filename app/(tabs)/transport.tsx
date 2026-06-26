@@ -1,5 +1,7 @@
+import { CityGuide } from '@/components/CityGuide';
 import { FactCard } from '@/components/FactCard';
 import { Colors, Radius, Shadow, Spacing, Typography } from '@/constants';
+import { cities } from '@/data/cities';
 import { TransportMode, transportModes, transportPhrases } from '@/data/transportGuide';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -19,6 +21,7 @@ export default function TransportScreen() {
   const colors = scheme === 'dark' ? Colors.dark : Colors.light;
   const [expanded, setExpanded] = useState<string | null>('metro');
   const [copied, setCopied] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
   const toggle = (id: string) => setExpanded(expanded === id ? null : id);
 
@@ -27,6 +30,8 @@ export default function TransportScreen() {
     setCopied(zh);
     setTimeout(() => setCopied(null), 1500);
   };
+
+  const city = cities.find((c) => c.id === selectedCity);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -38,7 +43,49 @@ export default function TransportScreen() {
           </Text>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Ways to travel</Text>
+        {/* City selector */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose your city</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.cityRow}
+        >
+          {cities.map((c) => {
+            const active = selectedCity === c.id;
+            return (
+              <TouchableOpacity
+                key={c.id}
+                style={[
+                  styles.cityChip,
+                  { backgroundColor: active ? colors.primary : colors.surface },
+                  Shadow.sm,
+                ]}
+                onPress={() => setSelectedCity(active ? null : c.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cityEmoji}>{c.emoji}</Text>
+                <Text style={[styles.cityName, { color: active ? '#fff' : colors.text }]}>
+                  {c.name}
+                </Text>
+                <Text style={[styles.cityNameZh, { color: active ? '#fff' : colors.textMuted }]}>
+                  {c.nameZh}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Selected city guide */}
+        {city && (
+          <View style={styles.cityGuideWrap}>
+            <CityGuide city={city} />
+          </View>
+        )}
+
+        {/* Generic transport modes */}
+        <Text style={[styles.sectionTitle, { color: colors.text, marginTop: Spacing.xl }]}>
+          Ways to travel
+        </Text>
 
         {transportModes.map((mode) => (
           <ModeCard
@@ -134,6 +181,12 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: Typography.sizes.md, marginTop: Spacing.xs },
   sectionTitle: { fontSize: Typography.sizes.xl, fontWeight: Typography.weights.bold, marginBottom: Spacing.md },
   sectionHint: { fontSize: Typography.sizes.sm, marginTop: -Spacing.sm, marginBottom: Spacing.md },
+  cityRow: { gap: Spacing.sm, paddingBottom: Spacing.sm, paddingRight: Spacing.lg },
+  cityChip: { paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, borderRadius: Radius.lg, alignItems: 'center', gap: 2, minWidth: 90 },
+  cityEmoji: { fontSize: 24 },
+  cityName: { fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
+  cityNameZh: { fontSize: Typography.sizes.xs },
+  cityGuideWrap: { marginTop: Spacing.md },
   modeCard: { borderRadius: Radius.lg, marginBottom: Spacing.md, overflow: 'hidden' },
   modeHeader: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.md },
   modeIcon: { width: 48, height: 48, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
@@ -146,14 +199,7 @@ const styles = StyleSheet.create({
   stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
   stepDot: { width: 8, height: 8, borderRadius: 4, marginTop: 7, marginLeft: 4 },
   stepText: { flex: 1, fontSize: Typography.sizes.md, lineHeight: 22 },
-  phraseCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.lg,
-    borderRadius: Radius.lg,
-    marginBottom: Spacing.sm,
-    gap: Spacing.md,
-  },
+  phraseCard: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, borderRadius: Radius.lg, marginBottom: Spacing.sm, gap: Spacing.md },
   phraseInfo: { flex: 1, gap: 2 },
   phraseZh: { fontSize: Typography.sizes.lg, fontWeight: Typography.weights.semibold },
   phrasePinyin: { fontSize: Typography.sizes.sm, fontStyle: 'italic' },
