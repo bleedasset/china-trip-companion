@@ -3,30 +3,41 @@ import { PaymentMethod, paymentMethods, quickFacts } from '@/data/paymentGuide';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function PaymentScreen() {
   const scheme = useColorScheme();
   const colors = scheme === 'dark' ? Colors.dark : Colors.light;
-  const [expanded, setExpanded] = useState<string | null>('wechat');
+  const [expanded, setExpanded] = useState<string | null>('alipay');
 
   const toggle = (id: string) => {
     setExpanded(expanded === id ? null : id);
   };
 
+  const openApp = async (method: PaymentMethod) => {
+    try {
+      const canOpen = await Linking.canOpenURL(method.appScheme);
+      if (canOpen) {
+        await Linking.openURL(method.appScheme);
+      } else {
+        await Linking.openURL(method.appStoreUrl);
+      }
+    } catch {
+      await Linking.openURL(method.appStoreUrl);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Payment</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
@@ -52,6 +63,7 @@ export default function PaymentScreen() {
             method={method}
             expanded={expanded === method.id}
             onToggle={() => toggle(method.id)}
+            onOpenApp={() => openApp(method)}
             colors={colors}
           />
         ))}
@@ -66,11 +78,13 @@ function MethodCard({
   method,
   expanded,
   onToggle,
+  onOpenApp,
   colors,
 }: {
   method: PaymentMethod;
   expanded: boolean;
   onToggle: () => void;
+  onOpenApp: () => void;
   colors: typeof Colors.light;
 }) {
   return (
@@ -95,6 +109,15 @@ function MethodCard({
           <Text style={[styles.methodDesc, { color: colors.textSecondary }]}>
             {method.description}
           </Text>
+
+          <TouchableOpacity
+            style={[styles.openButton, { backgroundColor: method.color }]}
+            onPress={onOpenApp}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="open-outline" size={18} color="#fff" />
+            <Text style={styles.openButtonText}>Open {method.name}</Text>
+          </TouchableOpacity>
 
           <View style={styles.stepsContainer}>
             {method.steps.map((step, i) => (
@@ -131,35 +154,27 @@ const styles = StyleSheet.create({
   factCard: { flex: 1, padding: Spacing.md, borderRadius: Radius.lg, gap: Spacing.xs },
   factTitle: { fontSize: Typography.sizes.sm, fontWeight: Typography.weights.semibold },
   factText: { fontSize: Typography.sizes.xs, lineHeight: 16 },
-  sectionTitle: {
-    fontSize: Typography.sizes.xl,
-    fontWeight: Typography.weights.bold,
-    marginBottom: Spacing.md,
-  },
+  sectionTitle: { fontSize: Typography.sizes.xl, fontWeight: Typography.weights.bold, marginBottom: Spacing.md },
   methodCard: { borderRadius: Radius.lg, marginBottom: Spacing.md, overflow: 'hidden' },
   methodHeader: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, gap: Spacing.md },
-  methodIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  methodIcon: { width: 48, height: 48, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
   methodInfo: { flex: 1 },
   methodName: { fontSize: Typography.sizes.lg, fontWeight: Typography.weights.semibold },
   methodNameZh: { fontSize: Typography.sizes.sm, marginTop: 2 },
   methodBody: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.lg, gap: Spacing.lg },
   methodDesc: { fontSize: Typography.sizes.md, lineHeight: 22 },
-  stepsContainer: { gap: Spacing.md },
-  stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
-  stepNumber: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  openButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 1,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.full,
   },
+  openButtonText: { color: '#fff', fontSize: Typography.sizes.md, fontWeight: Typography.weights.semibold },
+  stepsContainer: { gap: Spacing.md },
+  stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
+  stepNumber: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
   stepNumberText: { color: '#fff', fontSize: Typography.sizes.xs, fontWeight: Typography.weights.bold },
   stepText: { flex: 1, fontSize: Typography.sizes.md, lineHeight: 22 },
   tipsBox: { padding: Spacing.md, borderRadius: Radius.md, gap: Spacing.sm },
