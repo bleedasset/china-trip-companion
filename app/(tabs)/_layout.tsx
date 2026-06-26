@@ -1,4 +1,6 @@
 import { Colors, Typography } from '@/constants';
+import { useLanguage } from '@/i18n/LanguageContext';
+import { TranslationKey } from '@/i18n/translations';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
@@ -8,23 +10,24 @@ type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface TabConfig {
   name: string;
-  title: string;
+  labelKey: TranslationKey;
   icon: IconName;
   iconFocused: IconName;
 }
 
 const tabs: TabConfig[] = [
-  { name: 'index', title: 'Scanner', icon: 'scan-outline', iconFocused: 'scan' },
-  { name: 'payment', title: 'Payment', icon: 'card-outline', iconFocused: 'card' },
-  { name: 'transport', title: 'Transport', icon: 'subway-outline', iconFocused: 'subway' },
-  { name: 'sos', title: 'SOS', icon: 'medkit-outline', iconFocused: 'medkit' },
-  { name: 'ai', title: 'AI', icon: 'sparkles-outline', iconFocused: 'sparkles' },
+  { name: 'index', labelKey: 'tabScanner', icon: 'scan-outline', iconFocused: 'scan' },
+  { name: 'payment', labelKey: 'tabPayment', icon: 'card-outline', iconFocused: 'card' },
+  { name: 'transport', labelKey: 'tabTransport', icon: 'subway-outline', iconFocused: 'subway' },
+  { name: 'sos', labelKey: 'tabSos', icon: 'medkit-outline', iconFocused: 'medkit' },
+  { name: 'ai', labelKey: 'tabAi', icon: 'sparkles-outline', iconFocused: 'sparkles' },
 ];
 
 export default function TabsLayout() {
   const scheme = useColorScheme();
   const colors = scheme === 'dark' ? Colors.dark : Colors.light;
   const isDark = scheme === 'dark';
+  const { t } = useLanguage();
 
   return (
     <Tabs
@@ -58,7 +61,7 @@ export default function TabsLayout() {
           key={tab.name}
           name={tab.name}
           options={{
-            title: tab.title,
+            title: t(tab.labelKey),
             tabBarIcon: ({ focused, color }) => (
               <Ionicons
                 name={focused ? tab.iconFocused : tab.icon}

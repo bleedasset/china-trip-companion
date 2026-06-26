@@ -1,3 +1,4 @@
+import { LanguageProvider } from '@/i18n/LanguageContext';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
@@ -10,10 +11,12 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
-        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+        <LanguageProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+        </LanguageProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

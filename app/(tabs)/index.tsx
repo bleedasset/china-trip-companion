@@ -1,5 +1,6 @@
 import { Colors, Radius, Shadow, Spacing, Typography } from '@/constants';
-import { scanImage, ScanResult, TargetLanguage } from '@/services/groq';
+import { useLanguage } from '@/i18n/LanguageContext';
+import { scanImage, ScanResult } from '@/services/groq';
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -19,11 +20,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function ScannerScreen() {
   const scheme = useColorScheme();
   const colors = scheme === 'dark' ? Colors.dark : Colors.light;
+  const { lang, setLang, t } = useLanguage();
 
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
 
-  const [lang, setLang] = useState<TargetLanguage>('ru');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
 
@@ -65,16 +66,16 @@ export default function ScannerScreen() {
     return (
       <SafeAreaView style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
         <Ionicons name="camera-outline" size={64} color={colors.textMuted} />
-        <Text style={[styles.permTitle, { color: colors.text }]}>Camera access needed</Text>
+        <Text style={[styles.permTitle, { color: colors.text }]}>{t('cameraNeeded')}</Text>
         <Text style={[styles.permText, { color: colors.textSecondary }]}>
-          We use the camera to scan and translate Chinese text
+          {t('cameraNeededText')}
         </Text>
         <TouchableOpacity
           style={[styles.permButton, { backgroundColor: colors.primary }, Shadow.md]}
           onPress={requestPermission}
           activeOpacity={0.85}
         >
-          <Text style={styles.permButtonText}>Allow camera</Text>
+          <Text style={styles.permButtonText}>{t('allowCamera')}</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -84,9 +85,9 @@ export default function ScannerScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={styles.header}>
         <View>
-          <Text style={[styles.title, { color: colors.text }]}>Scanner</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('scannerTitle')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Point camera at any Chinese text
+            {t('scannerSubtitle')}
           </Text>
         </View>
         <View style={[styles.langToggle, { backgroundColor: colors.surface }]}>
@@ -143,7 +144,7 @@ export default function ScannerScreen() {
           ) : (
             <>
               <Ionicons name="camera" size={28} color="#fff" />
-              <Text style={styles.scanButtonText}>Scan Text</Text>
+              <Text style={styles.scanButtonText}>{t('scanButton')}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -168,12 +169,7 @@ const styles = StyleSheet.create({
   langToggle: { flexDirection: 'row', borderRadius: Radius.full, padding: 3 },
   langOption: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radius.full },
   langText: { fontSize: Typography.sizes.sm, fontWeight: Typography.weights.semibold },
-  cameraContainer: {
-    flex: 1,
-    marginHorizontal: Spacing.screen,
-    borderRadius: Radius.xl,
-    overflow: 'hidden',
-  },
+  cameraContainer: { flex: 1, marginHorizontal: Spacing.screen, borderRadius: Radius.xl, overflow: 'hidden' },
   camera: { flex: 1 },
   overlay: { flex: 1, margin: 40 },
   corner: { position: 'absolute', width: 32, height: 32, borderColor: '#fff', borderWidth: 3 },
@@ -190,15 +186,7 @@ const styles = StyleSheet.create({
   contextBox: { flexDirection: 'row', gap: Spacing.sm, padding: Spacing.md, borderRadius: Radius.md, marginTop: Spacing.sm },
   context: { flex: 1, fontSize: Typography.sizes.sm, lineHeight: 20 },
   actions: { paddingHorizontal: Spacing.screen, paddingVertical: Spacing.lg },
-  scanButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.lg,
-    borderRadius: Radius.full,
-    minHeight: 60,
-  },
+  scanButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.full, minHeight: 60 },
   scanButtonText: { color: '#fff', fontSize: Typography.sizes.lg, fontWeight: Typography.weights.semibold },
   permTitle: { fontSize: Typography.sizes.xl, fontWeight: Typography.weights.bold },
   permText: { fontSize: Typography.sizes.md, textAlign: 'center' },
