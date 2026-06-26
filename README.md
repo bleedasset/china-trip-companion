@@ -1,50 +1,66 @@
-# Welcome to your Expo app 👋
+# China Trip Companion
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> An AI-powered mobile companion that helps travelers navigate China — translating signs, explaining payments, and answering questions in real time.
 
-## Get started
+Built with React Native (Expo) and powered by Groq's fast LLM inference, China Trip Companion bundles the five things every first-time traveler to China struggles with into one clean, native app.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- **Scanner** — Point your camera at any Chinese text (menus, signs, labels). The app recognizes the characters, translates them, and explains the context — what a dish is, whether a sign is a warning, and useful tips for travelers.
+- **Payment Guide** — Step-by-step setup for WeChat Pay and Alipay with foreign cards, plus the key facts every visitor needs to pay like a local.
+- **Transport** — How to use the metro, taxis (Didi), and buses, with copy-to-clipboard Chinese phrases to show drivers.
+- **SOS** — One-tap emergency numbers, medical phrases for hospital visits, and safety tips.
+- **AI Assistant** — A conversational guide that answers anything about Chinese culture, etiquette, food, and travel.
 
-2. Start the app
+## Tech Stack
 
-   ```bash
-   npx expo start
-   ```
+- **Framework:** React Native + Expo (SDK 54)
+- **Language:** TypeScript
+- **Routing:** Expo Router (file-based)
+- **AI:** Groq API (vision model for OCR/translation, LLM for chat)
+- **Build:** EAS Build
 
-In the output, you'll find options to open the app in a
+## Architecture
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+The project is organized for clarity and maintainability:
+app/(tabs)/      # Five screens, file-based routing
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+constants/       # Design system: colors, typography, spacing
 
-## Get a fresh project
+data/            # Static content for guides (payment, transport, SOS)
 
-When you're ready, run:
+services/        # Groq API integration
+
+hooks/           # Shared logic (theme)
+
+A central design system (`constants/`) drives consistent colors, typography, and spacing across every screen, with full light and dark mode support.
+
+## Getting Started
 
 ```bash
-npm run reset-project
+# Install dependencies
+npm install
+
+# Add your Groq API key
+echo "EXPO_PUBLIC_GROQ_API_KEY=your_key_here" > .env
+
+# Start the dev server
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Get a free Groq API key at [console.groq.com](https://console.groq.com).
 
-## Learn more
+## Roadmap
 
-To learn more about developing your project with Expo, look at the following resources:
+- [ ] Offline phrasebook caching
+- [ ] Language toggle (RU/EN) across all screens
+- [ ] Chat history persistence
+- [ ] Google Play release
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## License
 
-## Join the community
+MIT
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Built as a portfolio project exploring mobile development, AI integration, and Chinese travel culture.
