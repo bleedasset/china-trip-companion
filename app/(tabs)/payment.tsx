@@ -1,3 +1,4 @@
+import { FactCard } from '@/components/FactCard';
 import { Colors, Radius, Shadow, Spacing, Typography } from '@/constants';
 import { PaymentMethod, paymentMethods, quickFacts } from '@/data/paymentGuide';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,6 +68,8 @@ export default function PaymentScreen() {
             colors={colors}
           />
         ))}
+
+        <FactCard category="payment" />
 
         <View style={{ height: 100 }} />
       </ScrollView>

@@ -1,16 +1,17 @@
+import { FactCard } from '@/components/FactCard';
 import { Colors, Radius, Shadow, Spacing, Typography } from '@/constants';
 import { emergencyNumbers, medicalPhrases, sosTips } from '@/data/sosGuide';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import {
-    Linking,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -98,6 +99,8 @@ export default function SosScreen() {
           ))}
         </View>
 
+        <FactCard category="sos" />
+
         <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>
@@ -113,14 +116,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: Typography.sizes.xl, fontWeight: Typography.weights.bold, marginBottom: Spacing.md },
   sectionHint: { fontSize: Typography.sizes.sm, marginTop: -Spacing.sm, marginBottom: Spacing.md },
   numbersGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
-  numberCard: {
-    width: '47%',
-    flexGrow: 1,
-    padding: Spacing.lg,
-    borderRadius: Radius.lg,
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
+  numberCard: { width: '47%', flexGrow: 1, padding: Spacing.lg, borderRadius: Radius.lg, alignItems: 'center', gap: Spacing.sm },
   numberIcon: { width: 44, height: 44, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
   numberValue: { fontSize: Typography.sizes.xxl, fontWeight: Typography.weights.bold },
   numberService: { fontSize: Typography.sizes.sm },

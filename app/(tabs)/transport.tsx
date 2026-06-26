@@ -1,15 +1,16 @@
+import { FactCard } from '@/components/FactCard';
 import { Colors, Radius, Shadow, Spacing, Typography } from '@/constants';
 import { TransportMode, transportModes, transportPhrases } from '@/data/transportGuide';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    useColorScheme,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -75,6 +76,8 @@ export default function TransportScreen() {
             />
           </TouchableOpacity>
         ))}
+
+        <FactCard category="transport" />
 
         <View style={{ height: 100 }} />
       </ScrollView>
